@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.google.gson.annotations.SerializedName;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -28,28 +27,21 @@ import java.util.Date;
 import java.util.Locale;
 
 public class FeedItem implements Parcelable {
-
+    @SerializedName("date")
     private String mDate;
-    private String mHumanDate;
+    @SerializedName("explanation")
     private String mDescription;
+    @SerializedName("url")
     private String mUrl;
+    @SerializedName("media_type")
+    private String mMediaType;
 
-    public FeedItem(JSONObject itemJson) {
-        try {
-            mDate = itemJson.getString("date");
-            mHumanDate = convertDateToHumanDate(mDate);
-            mDescription = itemJson.getString("explanation");
-            mUrl = itemJson.getString("url");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 
-    private FeedItem(Parcel p) {
+    protected FeedItem(Parcel p) {
         mDate = p.readString();
-        mHumanDate = p.readString();
         mDescription = p.readString();
         mUrl = p.readString();
+        mMediaType = p.readString();
     }
 
     public static final Parcelable.Creator<FeedItem> CREATOR = new Parcelable.Creator<FeedItem>() {
@@ -65,36 +57,20 @@ public class FeedItem implements Parcelable {
         }
     };
 
-    public String getDate() {
-        return mDate;
-    }
-
-    public void setDate(String date) {
-        mDate = date;
-    }
-
     public String getHumanDate() {
-        return mHumanDate;
-    }
-
-    public void setHumanDate(String humanDate) {
-        mHumanDate = humanDate;
+        return convertDateToHumanDate(mDate);
     }
 
     public String getDescription() {
         return mDescription;
     }
 
-    public void setDescription(String description) {
-        mDescription = description;
-    }
-
     public String getUrl() {
         return mUrl;
     }
 
-    public void setUrl(String url) {
-        mUrl = url;
+    public String getMediaType() {
+        return mMediaType;
     }
 
     @Override
@@ -105,9 +81,9 @@ public class FeedItem implements Parcelable {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeString(mDate);
-        parcel.writeString(mHumanDate);
         parcel.writeString(mDescription);
         parcel.writeString(mUrl);
+        parcel.writeString(mMediaType);
     }
 
     private String convertDateToHumanDate(String date) {

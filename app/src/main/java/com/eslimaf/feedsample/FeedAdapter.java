@@ -20,6 +20,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.eslimaf.feedsample.model.FeedItem;
+
 import java.util.ArrayList;
 
 public class FeedAdapter extends RecyclerView.Adapter<FeedItemViewHolder> {

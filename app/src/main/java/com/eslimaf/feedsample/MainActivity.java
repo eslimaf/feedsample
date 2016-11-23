@@ -25,28 +25,17 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.eslimaf.feedsample.model.FeedItem;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String NASA_API_KEY = "P1teEzaIAyk9JednPwE96ojFmHILVc2hFJtGtBHy";
-    private static final String BASE_URL = "https://api.nasa.gov/planetary/apod?";
-    private static final String DATE_PARAM = "date=";
-    private static final String API_PARAM = "&api_key=";
-    private static final String MEDIA_TYPE_KEY = "media_type";
-    private static final String MEDIA_TYPE_VIDEO_VALUE = "video";
 
     private FeedAdapter mFeedAdapter;
     private ArrayList<FeedItem> mItemList;
@@ -54,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayoutManager mLinearLayoutManager;
 
     private Calendar mCalendar;
-    private OkHttpClient mHttpClient;
+    private NasaApiService service;
 
     private boolean mLoadingItem = false;
 
@@ -63,7 +52,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mHttpClient = new OkHttpClient();
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(NasaApiService.BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        service = retrofit.create(NasaApiService.class);
+
         mCalendar = Calendar.getInstance();
         mItemList = new ArrayList<>();
 
@@ -124,8 +118,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.action_about_activity){
-            Intent intent = new Intent(this,AboutActivity.class);
+        if (item.getItemId() == R.id.action_about_activity) {
+            Intent intent = new Intent(this, AboutActivity.class);
             startActivity(intent);
             return true;
         }
@@ -135,35 +129,24 @@ public class MainActivity extends AppCompatActivity {
     private void requestItem() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String date = dateFormat.format(mCalendar.getTime());
-
-        String urlRequest = BASE_URL + DATE_PARAM + date + API_PARAM + NASA_API_KEY;
-        Request request = new Request.Builder().url(urlRequest).build();
         mLoadingItem = true;
-        mHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                mLoadingItem = false;
-                e.printStackTrace();
-            }
-
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                try {
-                    JSONObject itemJSON = new JSONObject(response.body().string());
-                    mCalendar.add(Calendar.DAY_OF_YEAR, -1);
-
-                    if (!itemJSON.getString(MEDIA_TYPE_KEY).equals(MEDIA_TYPE_VIDEO_VALUE)) {
-                        FeedItem item = new FeedItem(itemJSON);
-                        addNewItemToFeed(item);
-                    } else {
-                        requestItem();
+        service.requestItem(date, NasaApiService.NASA_API_KEY)
+                .enqueue(new retrofit2.Callback<FeedItem>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<FeedItem> call, retrofit2.Response<FeedItem> item) {
+                        mCalendar.add(Calendar.DAY_OF_YEAR, -1);
+                        if (!item.body().getMediaType().equals(NasaApiService.MEDIA_TYPE_VIDEO_VALUE)){
+                            addNewItemToFeed(item.body());
+                        }else{
+                            requestItem();
+                        }
                     }
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+                    @Override
+                    public void onFailure(retrofit2.Call<FeedItem> call, Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
     }
 
     private void addNewItemToFeed(final FeedItem item) {
