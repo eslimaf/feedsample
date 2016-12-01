@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.feed;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -25,41 +26,43 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.eslimaf.feedsample.model.FeedItem;
+import com.eslimaf.feedsample.AboutActivity;
+import com.eslimaf.feedsample.feed.model.FeedItem;
+import com.eslimaf.feedsample.R;
+import com.eslimaf.feedsample.feed.model.PhotosInteractor;
+import com.eslimaf.feedsample.feed.model.PhotosInteractorImpl;
+import com.eslimaf.feedsample.feed.presenter.FeedPresenter;
+import com.eslimaf.feedsample.feed.presenter.FeedPresenterImpl;
+import com.eslimaf.feedsample.feed.view.FeedView;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Locale;
 
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class FeedActivity extends AppCompatActivity implements FeedView {
 
     private FeedAdapter mFeedAdapter;
     private ArrayList<FeedItem> mItemList;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
+    private Snackbar mSnackbar;
 
-    private Calendar mCalendar;
-    private NasaApiService service;
+    // Model
+    private PhotosInteractor mPhotosInteractor;
+    // Presenter
+    private FeedPresenter mFeedPresenter;
 
     private boolean mLoadingItem = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_feed);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(NasaApiService.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        service = retrofit.create(NasaApiService.class);
-
-        mCalendar = Calendar.getInstance();
+        mSnackbar = Snackbar.make(findViewById(android.R.id.content),
+                R.string.snackbar_loading, Snackbar.LENGTH_INDEFINITE);
         mItemList = new ArrayList<>();
+        mPhotosInteractor = new PhotosInteractorImpl();
+        mFeedPresenter = new FeedPresenterImpl(mPhotosInteractor);
 
         mFeedAdapter = new FeedAdapter(mItemList);
         mLinearLayoutManager = new LinearLayoutManager(this);
@@ -93,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 int totalItemCount = mRecyclerView.getLayoutManager().getItemCount();
-                if (!mLoadingItem && totalItemCount == getLastVisibleItemPosition() + 1) {
-                    requestItem();
+                if (!isLoading() && totalItemCount == getLastVisibleItemPosition() + 1) {
+                    mFeedPresenter.requestPhoto();
                 }
             }
         });
@@ -104,9 +107,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        mFeedPresenter.onAttachView(this);
         if (mItemList.size() == 0) {
-            requestItem();
+            mFeedPresenter.requestPhoto();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        mFeedPresenter.onDetachView();
+        super.onStop();
     }
 
     @Override
@@ -126,38 +136,32 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void requestItem() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        String date = dateFormat.format(mCalendar.getTime());
-        mLoadingItem = true;
-        service.requestItem(date, NasaApiService.NASA_API_KEY)
-                .enqueue(new retrofit2.Callback<FeedItem>() {
-                    @Override
-                    public void onResponse(retrofit2.Call<FeedItem> call, retrofit2.Response<FeedItem> item) {
-                        mCalendar.add(Calendar.DAY_OF_YEAR, -1);
-                        if (!item.body().getMediaType().equals(NasaApiService.MEDIA_TYPE_VIDEO_VALUE)){
-                            addNewItemToFeed(item.body());
-                        }else{
-                            requestItem();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(retrofit2.Call<FeedItem> call, Throwable t) {
-                        t.printStackTrace();
-                    }
-                });
-    }
-
-    private void addNewItemToFeed(final FeedItem item) {
+    // 3
+    @Override
+    public void addNewItemToFeed(final FeedItem item) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 mItemList.add(item);
                 mFeedAdapter.notifyItemInserted(mItemList.size());
-                mLoadingItem = false;
             }
         });
+    }
+
+    @Override
+    public void showLoading() {
+        mSnackbar.show();
+        mLoadingItem = true;
+    }
+
+    @Override
+    public void hideLoading() {
+        mSnackbar.dismiss();
+        mLoadingItem = false;
+    }
+
+    private boolean isLoading() {
+        return mLoadingItem;
     }
 
     private int getLastVisibleItemPosition() {

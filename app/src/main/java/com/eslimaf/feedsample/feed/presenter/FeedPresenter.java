@@ -13,22 +13,15 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.feed.presenter;
 
 
-import com.eslimaf.feedsample.feed.model.FeedItem;
+import com.eslimaf.feedsample.feed.view.FeedView;
 
-import retrofit2.Call;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
+public interface FeedPresenter {
+    void onAttachView(FeedView view);
 
-public interface NasaApiService {
-    String NASA_API_KEY = "P1teEzaIAyk9JednPwE96ojFmHILVc2hFJtGtBHy";
-    String BASE_URL = "https://api.nasa.gov";
-    String DATE_PARAM = "date";
-    String API_PARAM = "api_key";
-    String MEDIA_TYPE_VIDEO_VALUE = "video";
+    void onDetachView();
 
-    @GET("planetary/apod")
-    Call<FeedItem> requestPhoto(@Query(DATE_PARAM) String date);
+    void requestPhoto();
 }

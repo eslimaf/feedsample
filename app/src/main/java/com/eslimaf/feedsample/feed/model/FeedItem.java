@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample.model;
+package com.eslimaf.feedsample.feed.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
