@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.feed;
 
 
 import android.content.Context;
@@ -23,6 +23,9 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.eslimaf.feedsample.DetailActivity;
+import com.eslimaf.feedsample.R;
+import com.eslimaf.feedsample.feed.model.FeedItem;
 import com.squareup.picasso.Picasso;
 
 public class FeedItemViewHolder extends RecyclerView.ViewHolder {

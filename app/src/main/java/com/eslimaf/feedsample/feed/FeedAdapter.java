@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.feed;
 
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.eslimaf.feedsample.R;
+import com.eslimaf.feedsample.feed.model.FeedItem;
 
 import java.util.ArrayList;
 
