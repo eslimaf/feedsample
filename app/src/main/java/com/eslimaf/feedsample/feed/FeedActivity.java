@@ -13,51 +13,75 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.feed;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import com.eslimaf.feedsample.model.FeedItem;
+import com.eslimaf.feedsample.AboutActivity;
+import com.eslimaf.feedsample.NasaApiService;
+import com.eslimaf.feedsample.R;
+import com.eslimaf.feedsample.feed.model.FeedItem;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
+import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class FeedActivity extends AppCompatActivity {
 
     private FeedAdapter mFeedAdapter;
     private ArrayList<FeedItem> mItemList;
     private RecyclerView mRecyclerView;
     private LinearLayoutManager mLinearLayoutManager;
-
+    private Snackbar mSnackbar;
     private Calendar mCalendar;
-    private NasaApiService service;
+    private NasaApiService mService;
 
     private boolean mLoadingItem = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_feed);
 
+        //Setup an interceptor to add the API key to every request
+        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        Request request = chain.request();
+                        HttpUrl url = request.url().newBuilder()
+                                .addQueryParameter(NasaApiService.API_PARAM
+                                        , NasaApiService.NASA_API_KEY).build();
+                        request = request.newBuilder().url(url).build();
+                        return chain.proceed(request);
+                    }
+                }).build();
         Retrofit retrofit = new Retrofit.Builder()
+                .client(okHttpClient)
                 .baseUrl(NasaApiService.BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        service = retrofit.create(NasaApiService.class);
-
+        mService = retrofit.create(NasaApiService.class);
+        mSnackbar = Snackbar.make(findViewById(android.R.id.content)
+                , R.string.snackbar_loading, Snackbar.LENGTH_INDEFINITE);
         mCalendar = Calendar.getInstance();
         mItemList = new ArrayList<>();
 
@@ -66,26 +90,6 @@ public class MainActivity extends AppCompatActivity {
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler);
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
-        //Add Swipe behavior
-        ItemTouchHelper.SimpleCallback itemTouchCallback =
-                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-                    @Override
-                    public boolean onMove(RecyclerView recyclerView,
-                                          RecyclerView.ViewHolder viewHolder,
-                                          RecyclerView.ViewHolder viewHolder1) {
-                        return false;
-                    }
-
-                    @Override
-                    public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                        int position = viewHolder.getAdapterPosition();
-                        mItemList.remove(position);
-                        mRecyclerView.getAdapter().notifyItemRemoved(position);
-                    }
-                };
-
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchCallback);
-        itemTouchHelper.attachToRecyclerView(mRecyclerView);
 
         //Add Scroll behavior
         mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -129,15 +133,16 @@ public class MainActivity extends AppCompatActivity {
     private void requestItem() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String date = dateFormat.format(mCalendar.getTime());
-        mLoadingItem = true;
-        service.requestItem(date, NasaApiService.NASA_API_KEY)
+        showLoading();
+        mService.requestItem(date, NasaApiService.NASA_API_KEY)
                 .enqueue(new retrofit2.Callback<FeedItem>() {
                     @Override
                     public void onResponse(retrofit2.Call<FeedItem> call, retrofit2.Response<FeedItem> item) {
                         mCalendar.add(Calendar.DAY_OF_YEAR, -1);
-                        if (!item.body().getMediaType().equals(NasaApiService.MEDIA_TYPE_VIDEO_VALUE)){
+                        if (!item.body().getMediaType().equals(NasaApiService.MEDIA_TYPE_VIDEO_VALUE)) {
                             addNewItemToFeed(item.body());
-                        }else{
+                            hideLoading();
+                        } else {
                             requestItem();
                         }
                     }
@@ -158,6 +163,16 @@ public class MainActivity extends AppCompatActivity {
                 mLoadingItem = false;
             }
         });
+    }
+
+    private void showLoading() {
+        mSnackbar.show();
+        mLoadingItem = true;
+    }
+
+    private void hideLoading() {
+        mSnackbar.dismiss();
+        mLoadingItem = false;
     }
 
     private int getLastVisibleItemPosition() {

@@ -16,7 +16,7 @@
 package com.eslimaf.feedsample;
 
 
-import com.eslimaf.feedsample.model.FeedItem;
+import com.eslimaf.feedsample.feed.model.FeedItem;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
