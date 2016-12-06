@@ -30,5 +30,5 @@ public interface NasaApiService {
     String MEDIA_TYPE_VIDEO_VALUE = "video";
 
     @GET("planetary/apod")
-    Call<FeedItem> requestItem(@Query(DATE_PARAM) String date, @Query(API_PARAM) String apiKey);
+    Call<FeedItem> requestPhoto(@Query(DATE_PARAM) String date, @Query(API_PARAM) String apiKey);
 }

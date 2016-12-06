@@ -98,7 +98,7 @@ public class FeedActivity extends AppCompatActivity {
                 super.onScrollStateChanged(recyclerView, newState);
                 int totalItemCount = mRecyclerView.getLayoutManager().getItemCount();
                 if (!mLoadingItem && totalItemCount == getLastVisibleItemPosition() + 1) {
-                    requestItem();
+                    requestPhoto();
                 }
             }
         });
@@ -109,7 +109,7 @@ public class FeedActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if (mItemList.size() == 0) {
-            requestItem();
+            requestPhoto();
         }
     }
 
@@ -130,11 +130,11 @@ public class FeedActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void requestItem() {
+    private void requestPhoto() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
         String date = dateFormat.format(mCalendar.getTime());
         showLoading();
-        mService.requestItem(date, NasaApiService.NASA_API_KEY)
+        mService.requestPhoto(date, NasaApiService.NASA_API_KEY)
                 .enqueue(new retrofit2.Callback<FeedItem>() {
                     @Override
                     public void onResponse(retrofit2.Call<FeedItem> call, retrofit2.Response<FeedItem> item) {
@@ -143,7 +143,7 @@ public class FeedActivity extends AppCompatActivity {
                             addNewItemToFeed(item.body());
                             hideLoading();
                         } else {
-                            requestItem();
+                            requestPhoto();
                         }
                     }
 
