@@ -64,6 +64,7 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
         mPhotosInteractor = new PhotosInteractorImpl();
         mFeedPresenter = new FeedPresenterImpl(mPhotosInteractor);
 
+
         mFeedAdapter = new FeedAdapter(mItemList);
         mLinearLayoutManager = new LinearLayoutManager(this);
 
@@ -163,7 +164,7 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
     private boolean isLoading() {
         return mLoadingItem;
     }
-
+  
     private int getLastVisibleItemPosition() {
         return mLinearLayoutManager.findLastVisibleItemPosition();
     }
