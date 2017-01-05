@@ -20,5 +20,5 @@
  * THE SOFTWARE.\n
  */\n</string>
     <string name="about">About</string>
-    <string name="snackbar_loading">Loading ...</string>
+    <string name="snackbar_loading">"Loading next photo"</string>
 </resources>
