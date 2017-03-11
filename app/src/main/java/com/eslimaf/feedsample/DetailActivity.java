@@ -35,7 +35,7 @@ public class DetailActivity extends AppCompatActivity {
         ImageView image = (ImageView) findViewById(R.id.detail_image);
         TextView description = (TextView) findViewById(R.id.detail_description);
 
-        if(item != null) {
+        if (item != null) {
             Picasso.with(this).load(item.getUrl()).into(image);
             description.setText(item.getDescription());
         }

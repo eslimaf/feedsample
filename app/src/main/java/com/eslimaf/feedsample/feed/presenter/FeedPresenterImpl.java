@@ -16,14 +16,16 @@
 package com.eslimaf.feedsample.feed.presenter;
 
 
+import com.eslimaf.feedsample.data.NasaApi;
 import com.eslimaf.feedsample.feed.model.FeedItem;
-import com.eslimaf.feedsample.NasaApiService;
 import com.eslimaf.feedsample.feed.model.PhotosInteractor;
 import com.eslimaf.feedsample.feed.view.FeedView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
+
+import javax.inject.Inject;
 
 import retrofit2.Call;
 
@@ -32,6 +34,7 @@ public class FeedPresenterImpl implements FeedPresenter {
     private PhotosInteractor mPhotosInteractor;
     private Calendar mCalendar;
 
+    @Inject
     public FeedPresenterImpl(PhotosInteractor interactor) {
         mPhotosInteractor = interactor;
         mCalendar = Calendar.getInstance();
@@ -59,7 +62,7 @@ public class FeedPresenterImpl implements FeedPresenter {
                         mCalendar.add(Calendar.DAY_OF_YEAR, -1);
                         if (item.body() != null
                                 && !item.body().getMediaType()
-                                .equals(NasaApiService.MEDIA_TYPE_VIDEO_VALUE)) {
+                                .equals(NasaApi.MEDIA_TYPE_VIDEO_VALUE)) {
                             mFeedView.addNewItemToFeed(item.body());
                             mFeedView.hideLoading();
                         } else {

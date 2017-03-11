@@ -27,23 +27,6 @@ import java.util.Date;
 import java.util.Locale;
 
 public class FeedItem implements Parcelable {
-    @SerializedName("date")
-    private String mDate;
-    @SerializedName("explanation")
-    private String mDescription;
-    @SerializedName("url")
-    private String mUrl;
-    @SerializedName("media_type")
-    private String mMediaType;
-
-
-    protected FeedItem(Parcel p) {
-        mDate = p.readString();
-        mDescription = p.readString();
-        mUrl = p.readString();
-        mMediaType = p.readString();
-    }
-
     public static final Parcelable.Creator<FeedItem> CREATOR = new Parcelable.Creator<FeedItem>() {
 
         @Override
@@ -56,6 +39,21 @@ public class FeedItem implements Parcelable {
             return new FeedItem[i];
         }
     };
+    @SerializedName("date")
+    private String mDate;
+    @SerializedName("explanation")
+    private String mDescription;
+    @SerializedName("url")
+    private String mUrl;
+    @SerializedName("media_type")
+    private String mMediaType;
+
+    protected FeedItem(Parcel p) {
+        mDate = p.readString();
+        mDescription = p.readString();
+        mUrl = p.readString();
+        mMediaType = p.readString();
+    }
 
     public String getHumanDate() {
         return convertDateToHumanDate(mDate);

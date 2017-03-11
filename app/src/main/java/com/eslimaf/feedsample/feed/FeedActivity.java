@@ -27,15 +27,17 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import com.eslimaf.feedsample.AboutActivity;
-import com.eslimaf.feedsample.feed.model.FeedItem;
 import com.eslimaf.feedsample.R;
-import com.eslimaf.feedsample.feed.model.PhotosInteractor;
-import com.eslimaf.feedsample.feed.model.PhotosInteractorImpl;
+import com.eslimaf.feedsample.application.FeedApplication;
+import com.eslimaf.feedsample.application.ioc.DaggerActivityComponent;
+import com.eslimaf.feedsample.application.ioc.PresenterModule;
+import com.eslimaf.feedsample.feed.model.FeedItem;
 import com.eslimaf.feedsample.feed.presenter.FeedPresenter;
-import com.eslimaf.feedsample.feed.presenter.FeedPresenterImpl;
 import com.eslimaf.feedsample.feed.view.FeedView;
 
 import java.util.ArrayList;
+
+import javax.inject.Inject;
 
 
 public class FeedActivity extends AppCompatActivity implements FeedView {
@@ -46,8 +48,6 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
     private LinearLayoutManager mLinearLayoutManager;
     private Snackbar mSnackbar;
 
-    // Model
-    private PhotosInteractor mPhotosInteractor;
     // Presenter
     private FeedPresenter mFeedPresenter;
 
@@ -58,12 +58,16 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_feed);
 
+        DaggerActivityComponent.builder()
+                .presenterModule(new PresenterModule())
+                .appComponent(((FeedApplication) getApplication()).getAppComponent())
+                .build()
+                .inject(this);
+
         mSnackbar = Snackbar.make(findViewById(android.R.id.content),
                 R.string.snackbar_loading, Snackbar.LENGTH_INDEFINITE);
-        mItemList = new ArrayList<>();
-        mPhotosInteractor = new PhotosInteractorImpl();
-        mFeedPresenter = new FeedPresenterImpl(mPhotosInteractor);
 
+        mItemList = new ArrayList<>();
 
         mFeedAdapter = new FeedAdapter(mItemList);
         mLinearLayoutManager = new LinearLayoutManager(this);
@@ -72,7 +76,8 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
         mRecyclerView.setLayoutManager(mLinearLayoutManager);
         //Add Swipe behavior
         ItemTouchHelper.SimpleCallback itemTouchCallback =
-                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT
+                        | ItemTouchHelper.RIGHT) {
                     @Override
                     public boolean onMove(RecyclerView recyclerView,
                                           RecyclerView.ViewHolder viewHolder,
@@ -137,6 +142,11 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
         return super.onOptionsItemSelected(item);
     }
 
+    @Inject
+    public void setFeedPresenter(FeedPresenter feedPresenter) {
+        mFeedPresenter = feedPresenter;
+    }
+
     // 3
     @Override
     public void addNewItemToFeed(final FeedItem item) {
@@ -164,7 +174,7 @@ public class FeedActivity extends AppCompatActivity implements FeedView {
     private boolean isLoading() {
         return mLoadingItem;
     }
-  
+
     private int getLastVisibleItemPosition() {
         return mLinearLayoutManager.findLastVisibleItemPosition();
     }

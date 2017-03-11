@@ -15,8 +15,8 @@
 
 package com.eslimaf.feedsample;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 public class AboutActivity extends AppCompatActivity {
@@ -26,11 +26,11 @@ public class AboutActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
 
-        TextView noticeTextView = (TextView)findViewById(R.id.about_notice_text);
+        TextView noticeTextView = (TextView) findViewById(R.id.about_notice_text);
         noticeTextView.setText(getFormattedNoticeText());
     }
 
-    private String getFormattedNoticeText(){
+    private String getFormattedNoticeText() {
         String fullNotice;
         fullNotice = getString(R.string.notice_razeware);
         return fullNotice;

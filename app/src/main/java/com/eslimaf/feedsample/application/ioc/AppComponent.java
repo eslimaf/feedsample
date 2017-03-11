@@ -1,10 +1,15 @@
 package com.eslimaf.feedsample.application.ioc;
 
-import android.app.Activity;
+import com.eslimaf.feedsample.data.NasaApiService;
+
+import javax.inject.Singleton;
 
 import dagger.Component;
 
-@Component(modules = {})
+@Singleton
+@Component(
+        modules = {AppModule.class}
+)
 public interface AppComponent {
-    void inject(Activity activity);
+    NasaApiService getNasaApiService();
 }

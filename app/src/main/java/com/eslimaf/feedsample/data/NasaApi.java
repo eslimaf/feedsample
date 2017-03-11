@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.eslimaf.feedsample;
+package com.eslimaf.feedsample.data;
 
 
 import com.eslimaf.feedsample.feed.model.FeedItem;
@@ -22,7 +22,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public interface NasaApiService {
+public interface NasaApi {
     String NASA_API_KEY = "P1teEzaIAyk9JednPwE96ojFmHILVc2hFJtGtBHy";
     String BASE_URL = "https://api.nasa.gov";
     String DATE_PARAM = "date";
